@@ -1,0 +1,9 @@
+---
+- name: Upgrade all packages from OS
+  apt:
+    name: '*'
+    state: latest
+- name: Git installation
+  apt:
+    name: git
+    state: latest
