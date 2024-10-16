@@ -9,16 +9,6 @@
     dbname: "db"
     dbusername: "root"
     dbpassword: "root"
-  tasks:
-    - name: Setup Ansible hosts
-      lineinfile: 
-        dest: /etc/hosts
-        state: present
-        line: "{{item}}"
-      with_items:
-        - 192.168.56.2 control-node
-        - 192.168.56.3 app
-        - 192.168.56.4 db
   roles:
     - default-os-setup
     - role: geerlingguy.mysql

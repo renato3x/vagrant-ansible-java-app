@@ -1,0 +1,77 @@
+---
+- name: Setup Java Server
+  hosts: apps
+  user: vagrant
+  become: yes
+  vars:
+    dbhost: "db"
+    dbname: "notes"
+    dbusername: "root"
+    dbpassword: "root"
+  tasks:
+    - name: Update cache
+      apt:
+        update_cache: yes
+
+    - name: Maven installation
+      apt:
+        name: maven
+        state: latest
+
+    - name: Java installation
+      apt:
+        name: openjdk-8-jdk
+        state: latest
+
+    - name: App directory creation
+      file:
+        path: /opt/notes
+        state: directory
+        owner: vagrant
+        group: vagrant
+
+    - name: Clone repository
+      git:
+        repo: https://github.com/callicoder/spring-boot-mysql-rest-api-tutorial.git
+        dest: /opt/notes
+        clone: yes
+        force: yes
+
+    - name: Setup properties file
+      template:
+        src: application.properties
+        dest: /opt/notes/src/main/resources/application.properties
+
+    - name: Generate application packages
+      command: mvn -f /opt/notes/pom.xml package
+      become: yes
+      become_user: vagrant
+
+    - name: Register actual package version
+      shell:
+        chdir: /opt/notes/
+        cmd: mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+      register: app_version
+
+    - name: Setup systemd service
+      template:
+        src: etc/systemd/system/notes.service
+        dest: /etc/systemd/system/notes.service
+      notify: reload daemon
+
+    - name: Start notes service
+      service:
+        name: notes
+        state: restarted
+  roles:
+    - default-os-setup
+  handlers:
+    - name: reload app
+      systemd:
+        name: notes
+        state: restarted
+        daemon_reload: yes
+    - name: reload daemon
+      systemd:
+        daemon_reexec: yes
+

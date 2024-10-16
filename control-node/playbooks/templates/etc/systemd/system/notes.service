@@ -1,0 +1,12 @@
+[Unit]
+Description=notes
+After=network.target
+
+[Service]
+User=vagrant
+WorkingDirectory=/opt/notes
+ExecStart=/usr/bin/java -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -jar /opt/notes/target/easy-notes-{{app_version.stdout}}.jar
+SyslogIdentifier=notes-%i
+
+[Install]
+WantedBy=multi-user.target
